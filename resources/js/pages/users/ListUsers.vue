@@ -5,11 +5,11 @@ import { Form, Field } from "vee-validate";
 import * as yup from "yup";
 
 const users = ref([]);
-const form = reactive({
-	name: "",
-	email: "",
-	password: "",
-});
+// const form = reactive({
+// 	name: "",
+// 	email: "",
+// 	password: "",
+// });
 
 const getUsers = () => {
 	axios.get("/api/users").then((response) => {
@@ -17,6 +17,7 @@ const getUsers = () => {
 	});
 };
 
+// validation dari yup library
 const schema = yup.object({
 	name: yup.string().required(),
 	email: yup.string().email().required(),
@@ -24,7 +25,10 @@ const schema = yup.object({
 });
 
 const createUser = (values) => {
-	console.log(values);
+	axios.post("/api/users", values).then((response) => {
+		users.value.unshift(response.data);
+		$("#createUserModal").modal("hide");
+	});
 };
 
 // const createUser = () => {
@@ -124,7 +128,11 @@ onMounted(() => {
 						<span aria-hidden="true">&times;</span>
 					</button>
 				</div>
-				<Form @submit="createUser" :validation-schema="schema" v-slot="{errors}">
+				<Form
+					@submit="createUser"
+					:validation-schema="schema"
+					v-slot="{ errors }"
+				>
 					<div class="modal-body">
 						<div class="form-group">
 							<label for="name">Name</label>
