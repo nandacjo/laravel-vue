@@ -28,6 +28,6 @@ export default [
     {
         path: "/admin/profile",
         name: "admin.profile",
-        component: UpdateProfile,
+        component: UpdateProfile
     },
 ];
