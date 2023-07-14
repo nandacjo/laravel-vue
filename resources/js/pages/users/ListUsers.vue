@@ -3,7 +3,9 @@ import axios from "axios";
 import { onMounted, reactive, ref } from "vue";
 import { Form, Field } from "vee-validate";
 import * as yup from "yup";
+import { useToastr } from "../../toastr.js";
 
+const toastr = useToastr();
 const users = ref([]);
 const editing = ref(false);
 const formValues = ref();
@@ -42,6 +44,7 @@ const createUser = (values, { resetForm, setFieldError, setErrors }) => {
       users.value.unshift(response.data);
       $("#userFormModal").modal("hide");
       resetForm();
+      toastr.success("User created successfully");
     })
     .catch((error) => {
       if (error.response.data.errors) {
@@ -77,6 +80,7 @@ const updateUser = (values, { setErrors }) => {
       );
       users.value[index] = response.data;
       $("#userFormModal").modal("hide");
+      toastr.success("User updated successfully");
     })
     .catch((error) => {
       if (error.response.data.errors) {
@@ -100,6 +104,7 @@ const handleSubmit = (values, actions) => {
 
 onMounted(() => {
   getUsers();
+  // toastr.info("Success");
 });
 </script>
 
@@ -146,9 +151,7 @@ onMounted(() => {
                   <td>-</td>
                   <td>-</td>
                   <td>
-                    <a href="#" @click.prevent="editUser(user)"
-                      ><i class="fa fa-edit"></i
-                    ></a>
+                    <a href="#" @click.prevent="editUser(user)"><i class="fa fa-edit"></i></a>
                   </td>
                 </tr>
               </tbody>
@@ -160,15 +163,8 @@ onMounted(() => {
   </div>
 
   <!-- Modal -->
-  <div
-    class="modal fade"
-    id="userFormModal"
-    data-backdrop="static"
-    tabindex="-1"
-    role="dialog"
-    aria-labelledby="staticBackdropLabel"
-    aria-hidden="true"
-  >
+  <div class="modal fade" id="userFormModal" data-backdrop="static" tabindex="-1" role="dialog"
+    aria-labelledby="staticBackdropLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
@@ -176,71 +172,36 @@ onMounted(() => {
             <span v-if="editing">Edit User</span>
             <span v-else>Add New User</span>
           </h5>
-          <button
-            type="button"
-            class="close"
-            data-dismiss="modal"
-            aria-label="Close"
-          >
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
-        <Form
-          ref="form"
-          @submit="handleSubmit"
-          :validation-schema="editing ? editUserSchema : createUserSchema"
-          v-slot="{ errors }"
-          :initial-values="formValues"
-        >
+        <Form ref="form" @submit="handleSubmit" :validation-schema="editing ? editUserSchema : createUserSchema"
+          v-slot="{ errors }" :initial-values="formValues">
           <div class="modal-body">
             <div class="form-group">
               <label for="name">Name</label>
-              <Field
-                name="name"
-                type="text"
-                class="form-control"
-                :class="{ 'is-invalid': errors.name }"
-                id="name"
-                aria-describedby="nameHelp"
-                placeholder="Enter full name"
-              />
+              <Field name="name" type="text" class="form-control" :class="{ 'is-invalid': errors.name }" id="name"
+                aria-describedby="nameHelp" placeholder="Enter full name" />
               <span class="invalid-feedback">{{ errors.name }}</span>
             </div>
 
             <div class="form-group">
               <label for="email">Email</label>
-              <Field
-                name="email"
-                type="email"
-                class="form-control"
-                :class="{ 'is-invalid': errors.email }"
-                id="email"
-                aria-describedby="nameHelp"
-                placeholder="Enter full name"
-              />
+              <Field name="email" type="email" class="form-control" :class="{ 'is-invalid': errors.email }" id="email"
+                aria-describedby="nameHelp" placeholder="Enter full name" />
               <span class="invalid-feedback">{{ errors.email }}</span>
             </div>
 
             <div class="form-group">
               <label for="email">Password</label>
-              <Field
-                name="password"
-                type="password"
-                class="form-control"
-                :class="{ 'is-invalid': errors.password }"
-                id="password"
-                aria-describedby="nameHelp"
-                placeholder="Enter password"
-              />
+              <Field name="password" type="password" class="form-control" :class="{ 'is-invalid': errors.password }"
+                id="password" aria-describedby="nameHelp" placeholder="Enter password" />
               <span class="invalid-feedback">{{ errors.password }}</span>
             </div>
           </div>
           <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              data-dismiss="modal"
-            >
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">
               Cancel
             </button>
             <button type="submit" class="btn btn-primary">Save</button>
@@ -250,27 +211,15 @@ onMounted(() => {
     </div>
   </div>
 
-  <div
-    class="modal fade"
-    id="deleteUserModal"
-    data-backdrop="static"
-    tabindex="-1"
-    role="dialog"
-    aria-labelledby="staticBackdropLabel"
-    aria-hidden="true"
-  >
+  <div class="modal fade" id="deleteUserModal" data-backdrop="static" tabindex="-1" role="dialog"
+    aria-labelledby="staticBackdropLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="staticBackdropLabel">
             <span>Delete User</span>
           </h5>
-          <button
-            type="button"
-            class="close"
-            data-dismiss="modal"
-            aria-label="Close"
-          >
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
         </div>
@@ -281,11 +230,7 @@ onMounted(() => {
           <button type="button" class="btn btn-secondary" data-dismiss="modal">
             Cancel
           </button>
-          <button
-            @click.prevent="deleteUser"
-            type="button"
-            class="btn btn-primary"
-          >
+          <button @click.prevent="deleteUser" type="button" class="btn btn-primary">
             Delete User
           </button>
         </div>
