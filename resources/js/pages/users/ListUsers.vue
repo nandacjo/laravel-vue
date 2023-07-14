@@ -27,21 +27,28 @@ const createUserSchema = yup.object({
   password: yup.string().required().min(8),
 });
 
-
 const editUserSchema = yup.object({
   name: yup.string().required(),
   email: yup.string().email().required(),
   password: yup.string().when((password, schema) => {
-    return (password != false) ? schema.required().min(8) : schema;
+    return password != false ? schema.required().min(8) : schema;
   }),
 });
 
-const createUser = (values) => {
-  axios.post("/api/users", values).then((response) => {
-    users.value.unshift(response.data);
-    $("#userFormModal").modal("hide");
-    resetForm();
-  });
+const createUser = (values, { resetForm, setFieldError, setErrors }) => {
+  axios
+    .post("/api/users", values)
+    .then((response) => {
+      users.value.unshift(response.data);
+      $("#userFormModal").modal("hide");
+      resetForm();
+    })
+    .catch((error) => {
+      if (error.response.data.errors) {
+        setErrors(error.response.data.errors);
+      }
+      // setFieldError('email', error.response.data.errors.email[0]);
+    });
 };
 
 const addUser = () => {
@@ -61,7 +68,7 @@ const editUser = (user) => {
   };
 };
 
-const updateUser = (values) => {
+const updateUser = (values, { setErrors }) => {
   axios
     .put("/api/users/" + formValues.value.id, values)
     .then((response) => {
@@ -72,21 +79,24 @@ const updateUser = (values) => {
       $("#userFormModal").modal("hide");
     })
     .catch((error) => {
+      if (error.response.data.errors) {
+        setErrors(error.response.data.errors);
+      }
       console.log(error);
-    })
-    .finally(() => {
-      form.value.resetForm();
     });
+  // .finally(() => {
+  //   form.value.resetForm();
+  // });
 };
 
-const handleSubmit = (values) => {
+const handleSubmit = (values, actions) => {
+  console.log(actions);
   if (editing.value) {
-    updateUser(values);
+    updateUser(values, actions);
   } else {
-    createUser(values);
+    createUser(values, actions);
   }
 };
-
 
 onMounted(() => {
   getUsers();
@@ -150,74 +160,136 @@ onMounted(() => {
   </div>
 
   <!-- Modal -->
-  <div class="modal fade" id="userFormModal" data-backdrop="static" tabindex="-1" role="dialog"
-        aria-labelledby="staticBackdropLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="staticBackdropLabel">
-                        <span v-if="editing">Edit User</span>
-                        <span v-else>Add New User</span>
-                    </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <Form ref="form" @submit="handleSubmit" :validation-schema="editing ? editUserSchema : createUserSchema"
-                    v-slot="{ errors }" :initial-values="formValues">
-                    <div class="modal-body">
-                        <div class="form-group">
-                            <label for="name">Name</label>
-                            <Field name="name" type="text" class="form-control" :class="{ 'is-invalid': errors.name }"
-                                id="name" aria-describedby="nameHelp" placeholder="Enter full name" />
-                            <span class="invalid-feedback">{{ errors.name }}</span>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="email">Email</label>
-                            <Field name="email" type="email" class="form-control "
-                                :class="{ 'is-invalid': errors.email }" id="email" aria-describedby="nameHelp"
-                                placeholder="Enter full name" />
-                            <span class="invalid-feedback">{{ errors.email }}</span>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="email">Password</label>
-                            <Field name="password" type="password" class="form-control "
-                                :class="{ 'is-invalid': errors.password }" id="password" aria-describedby="nameHelp"
-                                placeholder="Enter password" />
-                            <span class="invalid-feedback">{{ errors.password }}</span>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save</button>
-                    </div>
-                </Form>
-            </div>
+  <div
+    class="modal fade"
+    id="userFormModal"
+    data-backdrop="static"
+    tabindex="-1"
+    role="dialog"
+    aria-labelledby="staticBackdropLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="staticBackdropLabel">
+            <span v-if="editing">Edit User</span>
+            <span v-else>Add New User</span>
+          </h5>
+          <button
+            type="button"
+            class="close"
+            data-dismiss="modal"
+            aria-label="Close"
+          >
+            <span aria-hidden="true">&times;</span>
+          </button>
         </div>
-    </div>
-
-    <div class="modal fade" id="deleteUserModal" data-backdrop="static" tabindex="-1" role="dialog"
-        aria-labelledby="staticBackdropLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="staticBackdropLabel">
-                        <span>Delete User</span>
-                    </h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <h5>Are you sure you want to delete this user ?</h5>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    <button @click.prevent="deleteUser" type="button" class="btn btn-primary">Delete User</button>
-                </div>
+        <Form
+          ref="form"
+          @submit="handleSubmit"
+          :validation-schema="editing ? editUserSchema : createUserSchema"
+          v-slot="{ errors }"
+          :initial-values="formValues"
+        >
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="name">Name</label>
+              <Field
+                name="name"
+                type="text"
+                class="form-control"
+                :class="{ 'is-invalid': errors.name }"
+                id="name"
+                aria-describedby="nameHelp"
+                placeholder="Enter full name"
+              />
+              <span class="invalid-feedback">{{ errors.name }}</span>
             </div>
-        </div>
+
+            <div class="form-group">
+              <label for="email">Email</label>
+              <Field
+                name="email"
+                type="email"
+                class="form-control"
+                :class="{ 'is-invalid': errors.email }"
+                id="email"
+                aria-describedby="nameHelp"
+                placeholder="Enter full name"
+              />
+              <span class="invalid-feedback">{{ errors.email }}</span>
+            </div>
+
+            <div class="form-group">
+              <label for="email">Password</label>
+              <Field
+                name="password"
+                type="password"
+                class="form-control"
+                :class="{ 'is-invalid': errors.password }"
+                id="password"
+                aria-describedby="nameHelp"
+                placeholder="Enter password"
+              />
+              <span class="invalid-feedback">{{ errors.password }}</span>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-dismiss="modal"
+            >
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary">Save</button>
+          </div>
+        </Form>
+      </div>
     </div>
+  </div>
+
+  <div
+    class="modal fade"
+    id="deleteUserModal"
+    data-backdrop="static"
+    tabindex="-1"
+    role="dialog"
+    aria-labelledby="staticBackdropLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="staticBackdropLabel">
+            <span>Delete User</span>
+          </h5>
+          <button
+            type="button"
+            class="close"
+            data-dismiss="modal"
+            aria-label="Close"
+          >
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <h5>Are you sure you want to delete this user ?</h5>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">
+            Cancel
+          </button>
+          <button
+            @click.prevent="deleteUser"
+            type="button"
+            class="btn btn-primary"
+          >
+            Delete User
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
