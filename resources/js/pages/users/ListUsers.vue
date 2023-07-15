@@ -54,8 +54,13 @@ const createUser = (values, { resetForm, setFieldError, setErrors }) => {
     });
 };
 
-const addUser = () => {
+const addUser = (actions) => {
   editing.value = false;
+  formValues.value = {
+    id: '',
+    name: '',
+    email: '',
+  };
   $("#userFormModal").modal("show");
 };
 
