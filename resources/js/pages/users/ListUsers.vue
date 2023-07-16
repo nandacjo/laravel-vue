@@ -10,6 +10,7 @@ const users = ref([]);
 const editing = ref(false);
 const formValues = ref();
 const form = ref(null);
+const userIdBeingDeleted = ref(null);
 // const form = reactive({
 // 	name: "",
 // 	email: "",
@@ -107,6 +108,21 @@ const handleSubmit = (values, actions) => {
   }
 };
 
+const confirmUserDelete = (user) => {
+  userIdBeingDeleted.value = user.id;
+  $('#deleteUserModal').modal('show');
+}
+
+const deleteUser = () => {
+  axios.delete(`/api/users/${userIdBeingDeleted.value}`)
+    .then(() => {
+      $('#deleteUserModal').modal('hide');
+      users.value = users.value.filter(user => user.id !== userIdBeingDeleted.value);
+      toastr.success("User deleted successfully");
+
+    })
+}
+
 onMounted(() => {
   getUsers();
   // toastr.info("Success");
@@ -157,6 +173,7 @@ onMounted(() => {
                   <td>-</td>
                   <td>
                     <a href="#" @click.prevent="editUser(user)"><i class="fa fa-edit"></i></a>
+                    <a href="#" @click.prevent="confirmUserDelete(user)"><i class="fa fa-trash text-danger ml-2"></i></a>
                   </td>
                 </tr>
               </tbody>
