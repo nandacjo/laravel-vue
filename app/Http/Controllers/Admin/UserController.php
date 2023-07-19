@@ -11,6 +11,17 @@ class UserController extends Controller
     public function index()
     {
         $users = User::latest()->get();
+        // ->map(function ($user) {
+        // dd($user->created_at->toFormattedDate());
+        //     return [
+        //         'id' => $user->id,
+        //         'name' => $user->name,
+        //         'email' => $user->email,
+        //         // 'created_at' => $user->created_at->format('Y-m-d'),
+        //         // 'created_at' => $user->created_at->config('app.date.format'),
+        //         'created_at' => $user->created_at->toFormattedDate(),
+        //     ];
+        // });
         return $users;
     }
 
@@ -37,8 +48,6 @@ class UserController extends Controller
             'name' => 'required',
             'email' => 'required|unique:users,email,' . $user->id,
             'password' => 'sometimes|min:8'
-
-
         ]);
 
         $user->update([

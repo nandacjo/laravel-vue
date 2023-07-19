@@ -4,6 +4,8 @@ import { onMounted, reactive, ref } from "vue";
 import { Form, Field } from "vee-validate";
 import * as yup from "yup";
 import { useToastr } from "../../toastr.js";
+// import moment from 'moment';
+import { formatDate } from '../../helper.js';
 
 const toastr = useToastr();
 const users = ref([]);
@@ -91,6 +93,7 @@ const updateUser = (values, { setErrors }) => {
     .catch((error) => {
       if (error.response.data.errors) {
         setErrors(error.response.data.errors);
+        value
       }
       console.log(error);
     });
@@ -119,7 +122,6 @@ const deleteUser = () => {
       $('#deleteUserModal').modal('hide');
       users.value = users.value.filter(user => user.id !== userIdBeingDeleted.value);
       toastr.success("User deleted successfully");
-
     })
 }
 
@@ -169,7 +171,10 @@ onMounted(() => {
                   <td>{{ index + 1 }}</td>
                   <td>{{ user.name }}</td>
                   <td>{{ user.email }}</td>
-                  <td>-</td>
+                  <td>{{ formatDate(user.created_at) }}</td>
+                  <!-- <td>{{ moment(user.created_at).format('YYYY-MM-DD') }}</td> -->
+                  <!-- <td>{{ user.created_at }}</td> -->
+                  <!-- <td>{{ user.formatted_created_at }}</td> -->
                   <td>-</td>
                   <td>
                     <a href="#" @click.prevent="editUser(user)"><i class="fa fa-edit"></i></a>
