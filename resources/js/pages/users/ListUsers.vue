@@ -172,6 +172,7 @@ onMounted(() => {
                   <td>{{ user.name }}</td>
                   <td>{{ user.email }}</td>
                   <td>{{ formatDate(user.created_at) }}</td>
+                  <td>{{ user.role }}</td>
                   <!-- <td>{{ moment(user.created_at).format('YYYY-MM-DD') }}</td> -->
                   <!-- <td>{{ user.created_at }}</td> -->
                   <!-- <td>{{ user.formatted_created_at }}</td> -->
